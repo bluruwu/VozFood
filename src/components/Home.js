@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FaClipboardList, FaCog, FaShoppingCart } from "react-icons/fa";
+import api from '../services/services';
 
 export default function Home() {
-  const [showModal, setShowModal] = useState(false);
   const [showPedidosModal, setShowPedidosModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [selectedFood, setSelectedFood] = useState('');
-  const [foodImage, setFoodImage] = useState('');
+  const [selectedFood, setSelectedFood] = useState(null);
   const [pedidos, setPedidos] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [meals, setMeals] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   let recognition;
 
@@ -18,6 +20,19 @@ export default function Home() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
   }
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.listAllCategories();
+        setCategories(response.categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleVoiceInput = () => {
     if (!isListening) {
@@ -43,10 +58,30 @@ export default function Home() {
     }
   };
 
-  const handleOpenModal = (foodType, foodImageSrc) => {
-    setSelectedFood(foodType);
-    setFoodImage(foodImageSrc);
-    setShowModal(true);
+  const handleOpenCategory = async (category) => {
+    try {
+      const response = await api.filterByCategory(category);
+      setMeals(response.meals);
+      setActiveCategory(category);
+    } catch (error) {
+      console.error('Error fetching meals by category:', error);
+    }
+  };
+
+  const handleBackToCategories = () => {
+    setActiveCategory(null);
+    setMeals([]);
+  };
+
+  const handleOpenMealModal = async (mealId) => {
+    try {
+      const response = await api.lookupMealById(mealId);
+      const meal = response.meals[0];
+      setSelectedFood(meal);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error fetching meal details:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -55,7 +90,7 @@ export default function Home() {
 
   const handleSave = () => {
     const newPedido = {
-      comida: selectedFood,
+      comida: selectedFood.strMeal,
       vozReconocida: inputValue,
     };
 
@@ -77,33 +112,14 @@ export default function Home() {
     setShowPedidosModal(false);
   };
 
-  // Descripciones de ingredientes y sus pesos
-  const foodDescriptions = {
-    hamburguesa: [
-      { ingrediente: 'Pan', peso: '80g' },
-      { ingrediente: 'Carne de res', peso: '150g' },
-      { ingrediente: 'Queso', peso: '30g' },
-      { ingrediente: 'Lechuga', peso: '15g' },
-      { ingrediente: 'Tomate', peso: '20g' },
-    ],
-    pizza: [
-      { ingrediente: 'Masa', peso: '200g' },
-      { ingrediente: 'Queso', peso: '100g' },
-      { ingrediente: 'Pepperoni', peso: '50g' },
-      { ingrediente: 'Salsa de tomate', peso: '70g' },
-      { ingrediente: 'Aceitunas', peso: '20g' },
-    ],
-  };
-
   return (
     <div className="min-h-screen flex bg-gradient-to-r from-orange-300 to-yellow-300">
       <aside className="w-64 bg-white shadow-md h-screen p-6 rounded-lg">
-      <img src="/imgs/Gourmet.png" alt="Logo Gourmet" className="w-32 h-auto mx-auto mb-6" />
-              <nav>
+        <img src="/imgs/Gourmet.png" alt="Logo Gourmet" className="w-32 h-auto mx-auto mb-6" />
+        <nav>
           <ul>
             <li>
               <button className="flex items-center w-full text-left py-2 px-4 rounded-md hover:bg-orange-100 transition duration-300">
-                <FaShoppingCart className="mr-2 text-orange-500" />
                 Haz tu pedido
               </button>
             </li>
@@ -112,13 +128,11 @@ export default function Home() {
                 className="flex items-center w-full text-left py-2 px-4 rounded-md hover:bg-orange-100 transition duration-300"
                 onClick={handleShowPedidos}
               >
-                <FaClipboardList className="mr-2 text-orange-500" />
                 Pedidos
               </button>
             </li>
             <li>
               <button className="flex items-center w-full text-left py-2 px-4 rounded-md hover:bg-orange-100 transition duration-300">
-                <FaCog className="mr-2 text-orange-500" />
                 Configuraciones
               </button>
             </li>
@@ -135,41 +149,64 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Menú</h2>
           <p className="text-gray-600">Escoga el plato que usted desee ordenar.</p>
 
-          <div className="flex space-x-4 mt-4">
-            <div
-              className="w-32 h-32 bg-gray-300 cursor-pointer"
-              onClick={() => handleOpenModal('hamburguesa', '/imgs/hmbr.jpg')}
-            >
-              <img src="/imgs/hmbr.jpg" alt="Hamburguesa" className="w-full h-full object-cover" />
+          {activeCategory ? (
+            <div>
+              <button
+                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+                onClick={handleBackToCategories}
+              >
+                Volver a Categorías
+              </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+                {meals.map((meal) => (
+                  <div
+                    key={meal.idMeal}
+                    className="bg-gray-300 cursor-pointer rounded-lg overflow-hidden shadow-md"
+                    onClick={() => handleOpenMealModal(meal.idMeal)}
+                  >
+                    <img src={meal.strMealThumb} alt={meal.strMeal} className="w-full h-32 object-cover" />
+                    <div className="p-2 text-center">
+                      <h3 className="text-sm font-semibold text-gray-700">{meal.strMeal}</h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <div
-              className="w-32 h-32 bg-gray-300 cursor-pointer"
-              onClick={() => handleOpenModal('pizza', '/imgs/pizza.jpg')}
-            >
-              <img src="/imgs/pizza.jpg" alt="Pizza" className="w-full h-full object-cover" />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+              {categories.map((category) => (
+                <div
+                  key={category.idCategory}
+                  className="bg-gray-300 cursor-pointer rounded-lg overflow-hidden shadow-md"
+                  onClick={() => handleOpenCategory(category.strCategory)}
+                >
+                  <img src={category.strCategoryThumb} alt={category.strCategory} className="w-full h-32 object-cover" />
+                  <div className="p-2 text-center">
+                    <h3 className="text-sm font-semibold text-gray-700">{category.strCategory}</h3>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
 
-        {showModal && (
+        {showModal && selectedFood && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div className="bg-white p-4 rounded-lg max-w-2xl w-full">
-              <h2 className="text-lg font-bold mb-2">Seleccionaste: {selectedFood}</h2>
-              <img src={foodImage} alt={selectedFood} className="w-32 h-32 object-cover mx-auto mb-4" />
-
-              {/* Mostrar la descripción de los ingredientes */}
-              <div className="text-left mt-4">
-                <h3 className="text-md font-semibold mb-2">Ingredientes:</h3>
-                <ul className="list-disc list-inside">
-                  {foodDescriptions[selectedFood]?.map((item, index) => (
+              <h2 className="text-lg font-bold mb-2">Seleccionaste: {selectedFood.strMeal}</h2>
+              <img src={selectedFood.strMealThumb} alt={selectedFood.strMeal} className="w-full h-64 object-cover mb-4" />
+              <h3 className="text-md font-semibold mb-2">Ingredientes:</h3>
+              <ul className="list-disc list-inside">
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((index) => {
+                  const ingredient = selectedFood[`strIngredient${index}`];
+                  const measure = selectedFood[`strMeasure${index}`];
+                  return ingredient ? (
                     <li key={index}>
-                      {item.ingrediente}: {item.peso}
+                      {ingredient} - {measure}
                     </li>
-                  ))}
-                </ul>
-              </div>
-
+                  ) : null;
+                })}
+              </ul>
               <textarea
                 type="text"
                 value={inputValue}
