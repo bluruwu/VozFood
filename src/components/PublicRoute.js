@@ -4,7 +4,7 @@ import { Navigate } from "react-router";
 export function PublicRoute({ children }) {
   const { user, loading } = useAuth();
 
-  if (loading) return <h1>Loading...</h1>; // Puedes personalizar el mensaje de loading
+  if (loading) return <h1>Loading...</h1>; 
 
   if (user) return <Navigate to="/" replace />; // Si el usuario está autenticado, lo redirigimos a la ruta "/"
 
