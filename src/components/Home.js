@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/services';
+import { useAuth } from '../context/authContext';
+import { FaUserCircle } from "react-icons/fa"; // Ícono de usuario, puedes elegir otro
 
 export default function Home() {
+  const { user, logout } = useAuth();
   const [showPedidosModal, setShowPedidosModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -11,7 +14,6 @@ export default function Home() {
   const [meals, setMeals] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
   let recognition;
 
   if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -33,6 +35,14 @@ export default function Home() {
 
     fetchCategories();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();     
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   const handleVoiceInput = () => {
     if (!isListening) {
@@ -114,9 +124,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-r from-orange-300 to-yellow-300">
-      <aside className="w-64 bg-white shadow-md h-screen p-6 rounded-lg">
+      <aside className="w-64 bg-white shadow-md h-screen p-6 rounded-lg flex flex-col">
         <img src="/imgs/Gourmet.png" alt="Logo Gourmet" className="w-32 h-auto mx-auto mb-6" />
-        <nav>
+        <nav className='flex-grow'>
           <ul>
             <li>
               <button className="flex items-center w-full text-left py-2 px-4 rounded-md hover:bg-orange-100 transition duration-300">
@@ -138,6 +148,20 @@ export default function Home() {
             </li>
           </ul>
         </nav>
+        {user && (
+          <div 
+            className="flex items-center w-full text-left py-2 px-2 rounded-md hover:bg-orange-100 transition duration-300 cursor-pointer"
+            onClick={handleLogout}>
+            <button
+              className="flex items-center focus:outline-none"
+            >
+              <FaUserCircle size={30} />
+              <p className=' ml-2'>
+                Cerrar sesión
+              </p>
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className="flex-1 p-10">
@@ -191,8 +215,8 @@ export default function Home() {
         </div>
 
         {showModal && selectedFood && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-4 rounded-lg max-w-2xl w-full">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" onClick={handleCloseModal}>
+            <div className="bg-white p-4 rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-bold mb-2">Seleccionaste: {selectedFood.strMeal}</h2>
               <img src={selectedFood.strMealThumb} alt={selectedFood.strMeal} className="w-full h-64 object-cover mb-4" />
               <h3 className="text-md font-semibold mb-2">Ingredientes:</h3>
@@ -241,8 +265,8 @@ export default function Home() {
         )}
 
         {showPedidosModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" onClick={handleClosePedidosModal}>
+            <div className="bg-white p-6 rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-bold mb-4">Historial de Pedidos</h2>
 
               <table className="w-full border-collapse border border-gray-300">

@@ -18,24 +18,24 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const singup = (email, password) =>
+  const signup = (email, password) =>
     createUserWithEmailAndPassword(auth, email, password);
 
-  const login = (emial, password) =>
-    signInWithEmailAndPassword(auth, emial, password);
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
 
   const logout = () => signOut(auth);
 
   useEffect(() => {
-    const onsuscribe=onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe=onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-    return ()=>onsuscribe()
+    return ()=>unsubscribe()
   },[]);
 
   return (
-    <authContext.Provider value={{ singup, login, user, logout, loading }}>
+    <authContext.Provider value={{ signup, login, user, logout, loading }}>
       {children}
     </authContext.Provider>
   );
