@@ -149,9 +149,10 @@ export default function Home() {
           </ul>
         </nav>
         {user && (
-          <div className="flex items-center w-full text-left py-2 px-2 rounded-md hover:bg-orange-100 transition duration-300">
+          <div 
+            className="flex items-center w-full text-left py-2 px-2 rounded-md hover:bg-orange-100 transition duration-300 cursor-pointer"
+            onClick={handleLogout}>
             <button
-              onClick={handleLogout}
               className="flex items-center focus:outline-none"
             >
               <FaUserCircle size={30} />
@@ -214,8 +215,8 @@ export default function Home() {
         </div>
 
         {showModal && selectedFood && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-4 rounded-lg max-w-2xl w-full">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" onClick={handleCloseModal}>
+            <div className="bg-white p-4 rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-bold mb-2">Seleccionaste: {selectedFood.strMeal}</h2>
               <img src={selectedFood.strMealThumb} alt={selectedFood.strMeal} className="w-full h-64 object-cover mb-4" />
               <h3 className="text-md font-semibold mb-2">Ingredientes:</h3>
@@ -264,8 +265,8 @@ export default function Home() {
         )}
 
         {showPedidosModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" onClick={handleClosePedidosModal}>
+            <div className="bg-white p-6 rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-bold mb-4">Historial de Pedidos</h2>
 
               <table className="w-full border-collapse border border-gray-300">
