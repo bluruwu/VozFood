@@ -1,8 +1,9 @@
-import { useAuth } from "../context/authContext";
-import { Navigate } from "react-router";
+import { useAuth } from "../context/authContext"; // Importa el contexto de autenticación
+import { Navigate } from "react-router"; // Importa el componente para redirigir a otra ruta
 
+// Componente para proteger al usuario de re-loguearse
 export function PublicRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth(); // Extrae el usuario y el estado de carga del contexto de autenticación
 
   if (loading) return <h1>Loading...</h1>; 
 
