@@ -1,12 +1,16 @@
-import { useAuth } from "../context/authContext";
-import { Navigate } from "react-router";
+import { useAuth } from "../context/authContext"; // Importa el contexto de autenticación
+import { Navigate } from "react-router"; // Importa el componente para redirigir a otra ruta
 
-export function ProtectedRoute({children}){
-    const{user, loading}=useAuth()
+// Componente para proteger rutas que requieren autenticación
+export function ProtectedRoute({children}) {
+    const { user, loading } = useAuth(); // Extrae el usuario y el estado de carga del contexto de autenticación
 
-    if (loading) return <h1>loading</h1>
+    // Si la autenticación está cargando, muestra un mensaje de "loading"
+    if (loading) return <h1>loading</h1>;
 
-    if (!user) return <Navigate to='/login'/>
+    // Si no hay un usuario autenticado, redirige a la página de inicio de sesión
+    if (!user) return <Navigate to='/login'/>;
 
-    return <>{children}</>
+    // Si hay un usuario autenticado, renderiza los componentes hijos de la ruta protegida
+    return <>{children}</>;
 }
